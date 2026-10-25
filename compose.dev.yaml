@@ -1,7 +1,76 @@
+name: linnms-landing-page-dev
+
 services:
   nginx:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: linnms-landing-nginx:local
+    pull_policy: build
+    ports:
+      - "127.0.0.1:${LANDING_DEV_PORT:-8086}:8080"
+    depends_on:
+      - php
+    networks:
+      - landing
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    user: "101:101"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 128m
+    restart: on-failure:3
     volumes:
       - ./source:/workspace/landing-source:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
   php:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.php
+    image: linnms-landing-php:local
+    pull_policy: build
+    environment:
+      LANDING_NMS_BASE_URL: ${LANDING_NMS_BASE_URL:-/NMS}
+      LANDING_SECURE_COOKIE: ${LANDING_SECURE_COOKIE:-1}
+      FEEDBACK_DB_HOST: ${FEEDBACK_DB_HOST:-host.docker.internal}
+      FEEDBACK_DB_PORT: ${FEEDBACK_DB_PORT:-3306}
+      FEEDBACK_DB_NAME: ${FEEDBACK_DB_NAME:-}
+      FEEDBACK_DB_USER: ${FEEDBACK_DB_USER:-}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    secrets:
+      - feedback_db_password
+      - feedback_ip_hash_key
+    networks:
+      - landing
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    user: "82:82"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 128m
+    restart: on-failure:3
     volumes:
       - ./source:/workspace/landing-source:ro
+
+networks:
+  landing:
+
+secrets:
+  feedback_db_password:
+    file: ../landing-page-state/secrets/feedback_db_password
+  feedback_ip_hash_key:
+    file: ../landing-page-state/secrets/feedback_ip_hash_key

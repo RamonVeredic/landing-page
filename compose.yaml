@@ -2,10 +2,8 @@ name: linnms-landing-page
 
 services:
   nginx:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-    image: linnms-landing-nginx:local
+    image: ghcr.io/ramonveredic/landing-page-nginx:latest
+    pull_policy: always
     ports:
       - "127.0.0.1:${LANDING_PORT:-8085}:8080"
     depends_on:
@@ -30,10 +28,8 @@ services:
       retries: 3
 
   php:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile.php
-    image: linnms-landing-php:local
+    image: ghcr.io/ramonveredic/landing-page-php:latest
+    pull_policy: always
     environment:
       LANDING_NMS_BASE_URL: ${LANDING_NMS_BASE_URL:-/NMS}
       LANDING_SECURE_COOKIE: ${LANDING_SECURE_COOKIE:-1}
@@ -65,6 +61,6 @@ networks:
 
 secrets:
   feedback_db_password:
-    file: ./state/secrets/feedback_db_password
+    file: ../landing-page-state/secrets/feedback_db_password
   feedback_ip_hash_key:
-    file: ./state/secrets/feedback_ip_hash_key
+    file: ../landing-page-state/secrets/feedback_ip_hash_key
