@@ -1,66 +1,39 @@
-name: linnms-landing-page
+name: linms_landingpage
 
 services:
-  nginx:
-    image: ghcr.io/ramonveredic/landing-page-nginx:latest
-    pull_policy: always
-    ports:
-      - "127.0.0.1:${LANDING_PORT:-8085}:8080"
-    depends_on:
-      - php
-    networks:
-      - landing
-    read_only: true
-    tmpfs:
-      - /tmp:rw,noexec,nosuid,size=32m
-    user: "101:101"
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    pids_limit: 64
-    mem_limit: 128m
-    restart: on-failure:3
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-
-  php:
-    image: ghcr.io/ramonveredic/landing-page-php:latest
+  web:
+    image: ghcr.io/ramonveredic/linms_landingpage:latest
+    container_name: linms_landingpage
     pull_policy: always
     environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Asia/Jakarta}
       LANDING_NMS_BASE_URL: ${LANDING_NMS_BASE_URL:-/NMS}
       LANDING_SECURE_COOKIE: ${LANDING_SECURE_COOKIE:-1}
       FEEDBACK_DB_HOST: ${FEEDBACK_DB_HOST:-host.docker.internal}
       FEEDBACK_DB_PORT: ${FEEDBACK_DB_PORT:-3306}
       FEEDBACK_DB_NAME: ${FEEDBACK_DB_NAME:-}
       FEEDBACK_DB_USER: ${FEEDBACK_DB_USER:-}
+    ports:
+      - '${LANDING_BIND:-0.0.0.0}:${LANDING_PORT:-8085}:8080'
     extra_hosts:
       - host.docker.internal:host-gateway
     secrets:
       - feedback_db_password
       - feedback_ip_hash_key
-    networks:
-      - landing
-    read_only: true
-    tmpfs:
-      - /tmp:rw,noexec,nosuid,size=32m
-    user: "82:82"
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    pids_limit: 64
-    mem_limit: 128m
-    restart: on-failure:3
-
-networks:
-  landing:
+    restart: unless-stopped
+    mem_limit: 256m
+    pids_limit: 128
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/healthz']
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
 
 secrets:
   feedback_db_password:
-    file: ../landing-page-state/secrets/feedback_db_password
+    file: ${LINMS_SECRETS_DIR:-/DATA/AppData/linms_landingpage/secrets}/feedback_db_password
   feedback_ip_hash_key:
-    file: ../landing-page-state/secrets/feedback_ip_hash_key
+    file: ${LINMS_SECRETS_DIR:-/DATA/AppData/linms_landingpage/secrets}/feedback_ip_hash_key
