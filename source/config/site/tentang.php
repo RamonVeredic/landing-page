@@ -1,62 +1,52 @@
 <?php
-
 declare(strict_types=1);
-
-$brandSubtitle = 'Tentang Aplikasi';
 $navCurrent = 'tentang';
-$cssVersion = (string)(@filemtime(__DIR__ . '/asset/css/styiles.css') ?: 1);
-$pageTitle = 'Tentang NET.NMS · Pengelolaan Jaringan Terpusat';
-$pageDescription = 'Kenali NET.NMS, aplikasi pemantauan dan pengelolaan jaringan yang dikembangkan dari kebutuhan operasional sehari-hari dan masukan pengguna.';
+$pageTitle = 'Tentang NET.NMS — Dibangun dari kebutuhan jaringan';
+$pageDescription = 'Alasan NET.NMS dikembangkan, tujuan dan pendekatan pengembangan aplikasi pengelolaan jaringan.';
 ?>
 <!doctype html>
 <html lang="id">
 <?php require __DIR__ . '/partials/head.php'; ?>
 <body>
+<a class="skip-link" href="#main-content">Lewati ke konten utama</a>
 <div class="landing-shell information-shell">
     <?php require __DIR__ . '/partials/navbar.php'; ?>
-
-    <main class="information-main">
-        <article class="about-page" aria-labelledby="about-title">
-            <header>
-                <p class="eyebrow"><span></span> Tentang NET.NMS</p>
-                <h1 id="about-title">Berawal dari kebutuhan.<br>Berkembang bersama pengguna.</h1>
-                <div class="about-copy">
-                    <p>Memahami kondisi jaringan adalah bagian penting dari pekerjaan sehari-hari. NET.NMS hadir untuk membantu Anda memantau perangkat, menelusuri perubahan, dan mengelola informasi jaringan dari satu tempat.</p>
-                </div>
+    <main class="information-main" id="main-content">
+        <article class="about-page">
+            <header class="information-header">
+                <span class="eyebrow">TENTANG PROYEK</span>
+                <h1>Dibangun untuk orang yang <em>menjaga jaringan.</em></h1>
+                <p>NET.NMS lahir dari kebutuhan memahami kondisi jaringan di lapangan. Tujuannya sederhana: menghadirkan informasi yang terstruktur, mudah dibaca, dan relevan dengan pekerjaan teknis sehari-hari.</p>
             </header>
-
             <div class="information-grid">
-                <section class="information-card" aria-labelledby="about-purpose-title">
-                    <span class="section-kicker">Tujuan kami</span>
-                    <h2 id="about-purpose-title">Membuat pemantauan lebih sederhana</h2>
-                    <p>Status perangkat, kondisi sinyal, dan aktivitas jaringan disajikan secara ringkas agar lebih mudah diperiksa. Tujuannya membantu Anda mengenali kondisi jaringan dan menentukan tindak lanjut.</p>
+                <section class="information-card">
+                    <span class="section-kicker">01 / TUJUAN</span>
+                    <h2>Visibilitas yang lebih baik</h2>
+                    <p>NET.NMS dirancang membantu pemantauan OLT, ONU, dan perangkat jaringan terkait. Informasi status dan sinyal lebih berguna ketika dapat ditelusuri dalam satu alur.</p>
                 </section>
-
-                <section class="information-card" aria-labelledby="about-origin-title">
-                    <span class="section-kicker">Awal perjalanan</span>
-                    <h2 id="about-origin-title">Dibangun dari penggunaan sehari-hari</h2>
-                    <p>NET.NMS berangkat dari kebutuhan operasional di lapangan. Pengalaman penggunaan langsung menjadi dasar untuk menyempurnakan fitur, memperjelas tampilan, dan memperbaiki alur kerja.</p>
+                <section class="information-card">
+                    <span class="section-kicker">02 / PENDEKATAN</span>
+                    <h2>Berangkat dari kebutuhan nyata</h2>
+                    <p>Prioritas pengembangan mengikuti kebutuhan operasional: kemudahan menemukan perangkat, memahami perubahan, dan membantu langkah penanganan.</p>
                 </section>
-
-                <section class="information-card information-card-wide" aria-labelledby="about-development-title">
-                    <span class="section-kicker">Proses pengembangan</span>
-                    <h2 id="about-development-title">Bantuan AI, dengan arahan manusia</h2>
-                    <p>Kecerdasan buatan menjadi bagian dari proses pembuatan NET.NMS. Pemilik proyek menentukan kebutuhan, memberi arahan, meninjau hasil, dan melakukan pengujian pada lingkungan yang tersedia.</p>
-                    <p>Pengembangan dilakukan bertahap, dengan ruang untuk evaluasi dan perbaikan. Hasil dari AI tetap perlu diperiksa, sementara pengalaman pengguna membantu menemukan hal-hal yang belum terjangkau dalam pengujian.</p>
+                <section class="information-card information-card-wide">
+                    <span class="section-kicker">03 / PENGEMBANGAN</span>
+                    <h2>Bertahap, terbuka terhadap evaluasi</h2>
+                    <p>Pembuatan aplikasi memanfaatkan bantuan kecerdasan buatan dengan arahan dan peninjauan manusia. Implementasi dan kemampuan tiap fitur tetap perlu diverifikasi pada lingkungan serta perangkat yang digunakan.</p>
+                    <p>Dokumentasi diperlakukan sebagai bagian dari produk, bukan sekadar lampiran. Karena itu panduan aplikasi dan referensi teknis dikumpulkan dalam satu pusat dokumentasi yang dapat dikembangkan dari waktu ke waktu.</p>
                 </section>
             </div>
-
-            <section class="about-copy section-heading" aria-labelledby="about-feedback-title">
-                <h2 id="about-feedback-title">Masukan Anda ikut membentuk NET.NMS</h2>
-                <p>NET.NMS terus berkembang. Jika ada alur yang membingungkan, kendala penggunaan, atau fitur yang Anda butuhkan, ceritakan kepada kami. Masukan tersebut membantu menentukan perbaikan berikutnya.</p>
+            <section class="about-copy section-heading">
+                <span class="section-kicker">PELAJARI LEBIH LANJUT</span>
+                <h2>Mulai dari dokumentasi, lanjutkan ke penggunaan.</h2>
+                <p>Pelajari alur penggunaan, referensi OID, dan panduan integrasi sebelum menambahkan perangkat atau menyiapkan lingkungan aplikasi.</p>
                 <div class="about-actions">
-                    <a class="button button-primary button-large" href="/#masukan">Kirim masukan</a>
-                    <a class="button button-ghost button-large" href="/dokumentasi">Lihat dokumentasi OID</a>
+                    <a class="button button-primary button-lg" href="/dokumentasi">Pusat dokumentasi <i class="bi bi-arrow-up-right"></i></a>
+                    <a class="button button-ghost button-lg" href="/">Kembali ke beranda <i class="bi bi-arrow-left"></i></a>
                 </div>
             </section>
         </article>
     </main>
-
     <?php require __DIR__ . '/partials/footer.php'; ?>
 </div>
 </body>
