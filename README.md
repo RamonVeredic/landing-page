@@ -1,36 +1,39 @@
-# NET.NMS — Landing page & documentation
+# NET.NMS — Landing Page dan Dokumentasi
 
-Landing page NET.NMS untuk pemantauan perangkat jaringan, dibuat dengan **HTML/CSS/JavaScript** untuk frontend dan **PHP** untuk templating serta katalog dokumentasi. Tidak ada form feedback, penyimpanan database, autentikasi, maupun API eksternal pada landing page ini.
+Landing page NET.NMS menggunakan HTML, CSS, JavaScript, dan PHP untuk rendering halaman serta dokumentasi. Tidak memakai database atau formulir feedback. Tombol **Daftar** dan **Masuk** masih dinonaktifkan sampai tautan aplikasi tersedia.
 
-## Struktur situs
+## Menjalankan lewat CasaOS
 
-- `/` — beranda dengan visual ilustrasi dashboard, fitur, alur kerja, dan kartu dokumentasi.
-- `/tentang` — latar belakang proyek NET.NMS.
-- `/dokumentasi` — panduan aplikasi, referensi SNMP/OID, dan panduan integrasi WPPConnect.
-- `/healthz` — endpoint health check untuk web server.
+Deployment hanya memakai **satu container** dari image:
 
-Tombol **Daftar** dan **Masuk** sengaja belum aktif karena URL aplikasi belum ditentukan. Untuk mengaktifkannya, ganti elemen button di `source/config/site/partials/navbar.php` dan `source/config/site/index.php` dengan tautan valid.
+```text
+ghcr.io/ramonveredic/linms_landingpage:latest
+```
 
-## Menambahkan dokumentasi aplikasi
+File **`compose.yaml`** sudah disiapkan untuk CasaOS, termasuk ikon, judul, dan tombol pembuka Web UI. Tidak memerlukan `deploy.sh`, database, secret, maupun volume.
 
-File `source/config/site/docs-guides.php` merupakan katalog panduan berbasis array PHP. Tambahkan ID unik, `title`, `summary`, `icon` (Bootstrap Icons), serta `sections` yang berisi `title`, `description`, dan opsional `bullets`. Halaman `/dokumentasi` otomatis membuat kartu dan detail panduan baru. Tidak perlu database.
+1. Pastikan image telah diterbitkan oleh GitHub Actions untuk Git tag rilis.
+2. Di CasaOS, pilih **App Store → Custom Install → Import** dan tempel isi `compose.yaml`.
+3. Install aplikasi, lalu buka melalui `http://IP-CASAOS:8085`.
+4. Untuk mengubah port `8085`, sesuaikan **dua** tempat dalam YAML: `services.web.ports` (port host) dan `x-casaos.port_map`. Pastikan port tidak digunakan aplikasi lain.
+5. Untuk deployment publik, gunakan reverse proxy HTTPS. Port `8085` secara bawaan terbuka pada seluruh antarmuka host; batasi akses dengan firewall jika hanya digunakan di jaringan lokal.
 
-Referensi OID lama tetap ada di `source/config/site/oid-reference.php`. Panduan WPPConnect tetap tersedia di `source/config/site/dokumentasi.php`. Hindari memasukkan password, token, kunci API, dan data sensitif ke dokumentasi publik.
+Image menggunakan `lscr.io/linuxserver/nginx` yang sudah menyediakan Nginx dan PHP-FPM, sehingga tidak memerlukan container PHP terpisah. Jika perlu, sesuaikan `PUID`, `PGID`, dan `TZ` langsung dalam `compose.yaml`.
 
-## Instalasi CasaOS
+**Memperbarui aplikasi:** setelah Git tag baru dipush dan GitHub Actions berhasil memublikasikan image, lakukan pull/update image dan recreate container lewat CasaOS. Push kode saja **tidak** otomatis memperbarui container yang sedang berjalan.
 
-Gunakan `compose.yaml` sebagai satu file Compose dengan satu layanan web. Image `ghcr.io/ramonveredic/linms_landingpage:latest` memakai `lscr.io/linuxserver/nginx:latest` yang sudah memiliki Nginx dan PHP-FPM.
+## Situs dan dokumentasi
 
-1. Pastikan image versi yang diinginkan telah diterbitkan oleh GitHub Actions.
-2. Di CasaOS buka **Custom Install / Import Compose** lalu tempel isi `compose.yaml`.
-3. Akses di `http://IP-CASAOS:8085` secara bawaan. Gunakan reverse proxy HTTPS untuk akses publik.
-4. Jika paket GHCR privat, autentikasi agar CasaOS dapat melakukan pull.
+- `/` — halaman utama dengan ilustrasi dashboard, fitur, dan navigasi ke dokumentasi.
+- `/tentang` — informasi proyek NET.NMS.
+- `/dokumentasi` — panduan penggunaan, katalog OID/SNMP, dan integrasi WPPConnect.
+- `/healthz` — pemeriksaan kesehatan web server.
 
-Tidak perlu membuat database, file secret, atau password feedback. Contoh variabel opsional berada di `.env.example`: `PUID`, `PGID`, `TZ`, `LANDING_BIND`, dan `LANDING_PORT`.
+Untuk menambah dokumentasi, tambahkan entri dengan ID unik ke `source/config/site/docs-guides.php`. Isi `title`, `summary`, `icon`, dan daftar `sections`. Halaman `dokumentasi.php` membentuk katalog otomatis. Referensi OID tersedia di `source/config/site/oid-reference.php`. Jangan memasukkan kata sandi atau token produksi ke panduan publik.
 
-## Release image
+## Membangun image (GitHub Actions)
 
-GitHub Actions hanya memublikasikan image ketika Git tag cocok dengan `v*.*.*` (misalnya `v1.2.3`). Pull request hanya menjalankan pengujian build dan startup tanpa menerbitkan image.
+Workflow `.github/workflows/build-images.yml` tetap menjalankan pengujian pada pull request dan **hanya memublikasikan** ke GHCR ketika Git tag cocok dengan `v*.*.*`, misalnya `v1.2.3`:
 
 ```sh
 git checkout master
@@ -39,22 +42,28 @@ git tag v1.2.3
 git push origin v1.2.3
 ```
 
-Tag rilis tersebut menghasilkan `ghcr.io/ramonveredic/linms_landingpage:v1.2.3` dan `ghcr.io/ramonveredic/linms_landingpage:latest`. Gunakan tag baru untuk rilis selanjutnya. Filter tag GitHub merupakan glob, bukan validator SemVer numerik.
+Gunakan nomor tag yang belum pernah dibuat. Rilis akan menghasilkan:
 
-Build lokal:
+- `ghcr.io/ramonveredic/linms_landingpage:v1.2.3`
+- `ghcr.io/ramonveredic/linms_landingpage:latest`
+
+Git tag `v*.*.*` adalah pola glob GitHub, bukan validator SemVer yang ketat.
+
+Untuk build pengujian lokal:
 
 ```sh
 docker build -f docker/Dockerfile -t linms_landingpage:local .
 ```
 
-Jika menggunakan checkout Git, `./docker/deploy.sh` menarik image dan mencocokkan label commit. PHP hanya merender halaman; tidak ada operasi database atau penyimpanan form.
+## Lokasi berkas
 
-## Pengembangan
+- `compose.yaml` — satu-satunya konfigurasi runtime CasaOS.
+- `docker/Dockerfile` — membangun image untuk GHCR.
+- `source/config/site/index.php` — landing page.
+- `source/config/site/partials/` — header dan footer.
+- `source/config/site/docs-guides.php` — katalog panduan yang dapat diperluas.
+- `source/config/site/asset/css/styiles.css` — tampilan responsif.
+- `source/config/site/asset/js/script.js` — menu dan interaksi dokumentasi.
+- `source/config/nginx/default.conf` — pemetaan route PHP yang diizinkan.
 
-- Halaman utama: `source/config/site/index.php`
-- Header dan footer: `source/config/site/partials/`
-- Desain responsif: `source/config/site/asset/css/styiles.css`
-- Navigasi dan pencarian dokumentasi: `source/config/site/asset/js/script.js`
-- Konfigurasi route: `source/config/nginx/default.conf`
-
-Route PHP hanya dieksekusi secara eksplisit oleh Nginx; URL file PHP langsung tidak dapat diakses. Pertahankan proteksi ini saat menambahkan halaman baru.
+Halaman PHP hanya dieksekusi melalui route Nginx yang telah ditentukan; akses file PHP langsung melalui URL diblokir.
