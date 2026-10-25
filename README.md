@@ -1,41 +1,41 @@
-# Landing page NET.NMS
+# NET.NMS landing page — CasaOS
 
-Satu repository Git berisi `source/` (halaman dan konfigurasi), `docker/` (Dockerfile dan skrip deploy), serta Compose. `../landing-page-state/` menyimpan dua rahasia formulir pada host, di luar repository dan image. Saat container dibuat, Compose memasang kedua berkas itu ke `/run/secrets/` di container PHP. Folder state tidak dibuat oleh `docker pull`; siapkan sekali pada host baru, lalu biarkan tetap ada saat image diperbarui. `.env` lokal diabaikan Git; `.env.example` hanya berisi nama variabel dan contoh nilai, tanpa kata sandi.
+Production uses **one container** and **one Compose file** (`compose.yaml`). The image `ghcr.io/ramonveredic/linms_landingpage:latest` is built from `lscr.io/linuxserver/nginx:latest`, which already includes Nginx and PHP-FPM (including PDO MySQL). No separate PHP image or database container is built.
 
-## Hubungan Git, image, dan container
+## Install in CasaOS
 
-Push ke branch `master` membangun dua image GHCR, Nginx dan PHP, lalu menerbitkan tag `latest` seperti pola image staging. `docker/deploy.sh` menjalankan `git pull --ff-only`, menarik kedua image `latest`, lalu memeriksa label revisi Git di dalamnya. Label itu hanya pemeriksaan kecocokan source dengan image, bukan tag image yang perlu diatur pengguna. Jika salah satu image belum tersedia atau revisinya berbeda, container tidak diganti. Push Git saja tidak otomatis mengubah container berjalan.
+Import this repository's `compose.yaml` in CasaOS **Custom Install / Import Compose**. The image must already have been published by the GitHub Actions workflow after merging the changes. If GHCR is private, log in first using credentials that can read the package.
 
-Di dalam kedua image, kode berada pada `/workspace/landing-source`. Symlink Nginx dan PHP menunjuk ke sana. Mode pengembangan memasang `source/` read-only pada path yang sama; mode produksi memakai kode yang disalin saat build. Perubahan di `source/` baru masuk image produksi setelah push, build GitHub Actions selesai, dan deploy dijalankan.
+Before starting the container, create the two local secret files **on the CasaOS host**, which are intentionally not committed to Git:
 
-## Susunan direktori
-
-```text
-landing-page/                 # repository Git
-  .env.example               # template aman untuk Git
-  .gitignore
-  .dockerignore
-  compose.yaml               # tarik image GHCR
-  compose.dev.yaml           # konfigurasi dev mandiri: build lokal + source mount
-  docker/
-  source/
-landing-page-state/           # di luar repository Git
-  secrets/
-    feedback_db_password
-    feedback_ip_hash_key
+```sh
+sudo mkdir -p /DATA/AppData/linms_landingpage/secrets
+sudo touch /DATA/AppData/linms_landingpage/secrets/feedback_db_password
+openssl rand -hex 32 | sudo tee /DATA/AppData/linms_landingpage/secrets/feedback_ip_hash_key >/dev/null
+sudo chown 1000:1000 /DATA/AppData/linms_landingpage/secrets/*
+sudo chmod 400 /DATA/AppData/linms_landingpage/secrets/*
 ```
 
-Image hanya menyalin `source/config/nginx`, `source/config/php`, dan `source/config/site` yang diperlukan. `.dockerignore` mengecualikan Git, rahasia, log, dan berkas runtime dari build context. Nginx hanya melayani aset di `/asset/` dan rute halaman yang ditentukan; folder source dan secret tidak disajikan sebagai file publik.
+Write the feedback database account password to `feedback_db_password` only if the form should submit to MySQL. The database user should have only `SELECT` and `INSERT` permissions on the `feedback_messages` table. If database settings or password are missing, web pages still work but submitting feedback fails with an error.
 
-## Persiapan awal
+The default app URL is `http://CASAOS-SERVER-IP:8085`. Port 8085 binds all host interfaces so the CasaOS LAN can reach it. Use `LANDING_BIND=127.0.0.1` when a local reverse proxy is handling all access; use HTTPS for public deployment. With a reverse proxy and HTTPS, leave `LANDING_SECURE_COOKIE=1`. For **HTTP-only** LAN testing, set `LANDING_SECURE_COOKIE=0` (do not use that setting on the public internet).
 
-1. Salin `.env.example` menjadi `.env` di akar repository. Isi `LANDING_NMS_BASE_URL` dengan URL NMS yang benar. `/NMS` hanya cocok jika reverse proxy memang merutekannya ke NMS.
-2. Buat `../landing-page-state/secrets/`, misalnya `mkdir -p ../landing-page-state/secrets`. Isi `feedback_ip_hash_key` dengan kunci acak, misalnya `openssl rand -hex 32 > ../landing-page-state/secrets/feedback_ip_hash_key`.
-3. Jika formulir masukan dipakai, buat akun database khusus dengan hak `SELECT` dan `INSERT` pada tabel `feedback_messages`, isi `FEEDBACK_DB_NAME` dan `FEEDBACK_DB_USER` di `.env`, lalu simpan kata sandi di `../landing-page-state/secrets/feedback_db_password`. Bila belum dikonfigurasi, buat berkas kata sandi kosong agar container bisa mulai; formulir akan menampilkan kegagalan secara jelas.
-4. Pada host Linux, berikan akses baca hanya ke user PHP: `chown 82:82 ../landing-page-state/secrets/*` dan `chmod 400 ../landing-page-state/secrets/*`. Jika paket GHCR privat, login ke `ghcr.io` sebelum deploy.
+Default values are in `.env.example`; you can provide environment variables in CasaOS as needed: `PUID`, `PGID`, `TZ`, `LANDING_PORT`, `LINMS_SECRETS_DIR`, `LANDING_NMS_BASE_URL`, and the `FEEDBACK_DB_*` variables. The `PUID`/`PGID` must match the account that can read the two secret files. If you use a different secret directory, set `LINMS_SECRETS_DIR` before Compose starts.
 
-Jalankan `./docker/deploy.sh` dari checkout Git yang bersih setelah build GitHub Actions untuk push `master` selesai. Jika GitHub Actions masih membangun, ulangi perintah setelah selesai. Web secara bawaan terikat pada `127.0.0.1:8085`; pasang reverse proxy HTTPS untuk akses publik. Jangan buka port PHP-FPM.
+## Build and deploy
 
-Untuk pengembangan lokal, jalankan `docker compose -f compose.dev.yaml up -d --build`. File dev ini lengkap dan dapat dijalankan sendiri, memakai project Compose terpisah serta port `127.0.0.1:8086`. Perubahan halaman pada `source/` langsung terbaca melalui mount; perubahan konfigurasi Nginx perlu reload. Mode ini memakai rahasia di folder state yang sama, jadi gunakan database pengembangan jika menguji formulir. Hentikan dengan `docker compose -f compose.dev.yaml down`.
+Pushing to `master` triggers `.github/workflows/build-images.yml` to build and publish a **single** multi-architecture image with the tag `latest`. GitHub Actions packages permissions and GHCR package visibility must allow publishing and pulling.
 
-Pengecekan lokal: `curl -I http://127.0.0.1:8085/` harus memberi 200, sedangkan `curl -I http://127.0.0.1:8085/state/secrets/feedback_ip_hash_key` harus memberi 404.
+For a local test:
+
+```sh
+docker build -f docker/Dockerfile -t linms_landingpage:local .
+```
+
+If using the Git checkout and a .env file, `./docker/deploy.sh` pulls the matching GHCR image after verifying the image revision against the Git commit. CasaOS can instead pull/update the image through its UI. Existing containers are not replaced automatically merely by pushing to GitHub.
+
+App code is baked into `/app/www` in the image, and custom Nginx routes listen on container port 8080. LinuxServer's s6 supervision runs both Nginx and PHP-FPM, with PHP requests sent to `127.0.0.1:9000`. No source mount is needed for production. Only `/asset/` is publicly served as static content; arbitrary PHP and secret files remain blocked by the custom Nginx site configuration.
+
+Health endpoint: `GET /healthz`. Test locally: `curl -I http://127.0.0.1:8085/healthz`.
+
+Secrets in `LINMS_SECRETS_DIR` must be backed up and retained during image upgrades. Do not commit the credentials or key.
