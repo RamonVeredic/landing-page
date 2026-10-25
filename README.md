@@ -24,7 +24,18 @@ Default values are in `.env.example`; you can provide environment variables in C
 
 ## Build and deploy
 
-Pushing to `master` triggers `.github/workflows/build-images.yml` to build and publish a **single** multi-architecture image with the tag `latest`. GitHub Actions packages permissions and GHCR package visibility must allow publishing and pulling.
+Publishing is triggered **only by pushing a Git tag matching `v*.*.*`** (for example `v1.2.3`), not by ordinary pushes to `master`. `.github/workflows/build-images.yml` builds and publishes a **single** multi-architecture image tagged both `latest` and the version (for example `v1.2.3`). Pull requests targeting `master` still run build and startup checks but **do not publish** an image. GitHub Actions packages permissions and GHCR package visibility must allow publishing and pulling.
+
+Create a release after merging changes to `master`:
+
+```sh
+git checkout master
+git pull --ff-only origin master
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+Use a new tag for each release. The GitHub Actions tag filter is a glob, not a strict semantic-version validator.
 
 For a local test:
 
