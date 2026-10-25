@@ -28,10 +28,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate CasaOS Compose
+        run: docker compose -f compose.yaml config --quiet
       - name: Smoke test Nginx and PHP
         run: |
           docker build --file docker/Dockerfile --tag linms_landingpage:smoke .
-          docker run -d --name linms_smoke -p 127.0.0.1:18085:8080 -e LANDING_SECURE_COOKIE=0 linms_landingpage:smoke
+          docker run -d --name linms_smoke -p 127.0.0.1:18085:8080 linms_landingpage:smoke
           trap 'docker logs linms_smoke || true; docker rm -f linms_smoke || true' EXIT
           ready=0
           for i in $(seq 1 30); do
