@@ -4,19 +4,39 @@ services:
   web:
     image: ghcr.io/ramonveredic/linms_landingpage:latest
     container_name: linms_landingpage
-    pull_policy: always
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-Asia/Jakarta}
-    ports:
-      - '${LANDING_BIND:-0.0.0.0}:${LANDING_PORT:-8085}:8080'
     restart: unless-stopped
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Asia/Jakarta
+    ports:
+      - "8085:8080"
     mem_limit: 256m
     pids_limit: 128
     healthcheck:
-      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/healthz']
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 30s
+
+x-casaos:
+  id: linms_landingpage
+  main: web
+  index: /
+  port_map: "8085"
+  scheme: http
+  icon: https://raw.githubusercontent.com/RamonVeredic/linnms-landing-page/master/source/config/site/asset/icon.png
+  title:
+    en_US: NET.NMS Landing Page
+    custom: NET.NMS Landing Page
+  tagline:
+    en_US: Network management landing page and documentation
+  description:
+    en_US: Responsive NET.NMS landing page and documentation, served with Nginx and PHP-FPM.
+  author: RamonVeredic
+  developer: RamonVeredic
+  category: Utilities
+  architectures:
+    - amd64
+    - arm64
