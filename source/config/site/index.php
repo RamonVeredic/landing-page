@@ -1,494 +1,129 @@
 <?php
-
 declare(strict_types=1);
 
-$brandSubtitle = 'Network Management';
 $navCurrent = 'beranda';
-
-require_once __DIR__ . '/landing.php';
-landing_start_session();
-
-if (
-    !isset($_SESSION['landing_feedback_csrf'])
-    || !is_string($_SESSION['landing_feedback_csrf'])
-) {
-    $_SESSION['landing_feedback_csrf'] = bin2hex(random_bytes(32));
-}
-
-$feedbackStatus = $_SESSION['landing_feedback_status'] ?? null;
-
-unset($_SESSION['landing_feedback_status']);
-
-$landingCssVersion = (string)(
-    @filemtime(
-        __DIR__
-            . DIRECTORY_SEPARATOR . 'asset/css/styiles.css'
-    ) ?: 1
-);
-
-$pageTitle = 'NET.NMS · Network Management';
-$pageDescription = 'Pantau OLT, ONU, dan perangkat jaringan dalam satu dashboard NET.NMS. Periksa status, telusuri perubahan sinyal, dan kelola jaringan dengan lebih mudah.';
-
+$pageTitle = 'NET.NMS — Pantau jaringan, pahami setiap perubahan';
+$pageDescription = 'NET.NMS membantu tim jaringan memantau OLT, ONU, status perangkat dan sinyal dalam satu alur kerja. Jelajahi fitur dan dokumentasi teknis.';
 ?>
-
 <!doctype html>
-
 <html lang="id">
-
-<?php $cssVersion = $landingCssVersion;
-require __DIR__ . '/partials/head.php'; ?>
-
-
+<?php require __DIR__ . '/partials/head.php'; ?>
 <body>
+<a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+<div class="site-shell">
+    <?php require __DIR__ . '/partials/navbar.php'; ?>
 
-    <?php if (is_array($feedbackStatus) && trim((string)($feedbackStatus['message'] ?? '')) !== ''):
-        $feedbackToastType = ($feedbackStatus['type'] ?? '') === 'success' ? 'success' : 'error';
-        $feedbackToastMeta = $feedbackToastType === 'success'
-            ? ['title' => 'Berhasil', 'icon' => 'bi-check-lg', 'timeout' => 3400]
-            : ['title' => 'Gagal', 'icon' => 'bi-x-lg', 'timeout' => 6200];
-    ?>
-
-        <div
-            class="notification-stage"
-            data-notification-stage
-            aria-live="assertive"
-            aria-atomic="false">
-            <section
-                class="center-notification <?= $feedbackToastType ?>"
-                data-notification
-                data-timeout="<?= (int)$feedbackToastMeta['timeout'] ?>"
-                role="<?= $feedbackToastType === 'error' ? 'alert' : 'status' ?>">
-                <button
-                    class="notification-close"
-                    type="button"
-                    data-notification-close
-                    aria-label="Tutup notifikasi">
-                    <i class="bi bi-x" aria-hidden="true"></i>
-                </button>
-
-                <div class="notification-symbol <?= $feedbackToastType ?>" aria-hidden="true">
-                    <span class="notification-symbol-ring"></span>
-                    <i class="bi <?= $feedbackToastMeta['icon'] ?>"></i>
-                </div>
-
-                <strong class="notification-title"><?= htmlspecialchars($feedbackToastMeta['title'], ENT_QUOTES, 'UTF-8') ?></strong>
-                <p class="notification-message"><?= htmlspecialchars((string)($feedbackStatus['message'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
-
-                <div class="notification-progress" aria-hidden="true">
-                    <span></span>
-                </div>
-            </section>
-        </div>
-
-    <?php endif; ?>
-
-    <div class="landing-shell">
-
-        <?php require __DIR__ . '/partials/navbar.php'; ?>
-
-
-        <main>
-
-            <section
-                class="hero"
-                aria-labelledby="hero-title">
-
+    <main id="main-content">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-mesh" aria-hidden="true"></div>
+            <div class="container hero-grid">
                 <div class="hero-copy">
-
-                    <p class="eyebrow">
-                        <span></span>
-                        Satu dashboard untuk jaringan Anda
-                    </p>
-
-                    <h1 id="hero-title">
-                        Pantau lebih mudah.<br>Kelola lebih <em>terarah.</em>
-                    </h1>
-
-                    <p class="hero-lead">
-                        NET.NMS membantu Anda memantau OLT, ONU, dan perangkat jaringan
-                        dari satu tempat. Periksa status perangkat, telusuri perubahan
-                        sinyal, dan temukan bagian jaringan yang perlu ditangani.
-                    </p>
-
+                    <span class="eyebrow eyebrow-light"><span class="eyebrow-dot"></span> Network operations, made clearer</span>
+                    <h1 id="hero-title">Jaringan kompleks.<br><em>Kendali lebih jelas.</em></h1>
+                    <p class="hero-lead">Dari OLT hingga ONU, status perangkat hingga sinyal—NET.NMS membantu Anda melihat informasi yang penting tanpa kehilangan konteks di lapangan.</p>
                     <div class="hero-actions">
-
-                        <a
-                            class="button button-primary button-large"
-                            href="<?= htmlspecialchars(landing_nms_href('register'), ENT_QUOTES, 'UTF-8') ?>">
-                            Mulai dengan NET.NMS
-                            <span aria-hidden="true">&rarr;</span>
-                        </a>
-
-                        <a
-                            class="button button-ghost button-large"
-                            href="#fitur">
-                            Jelajahi fitur
-                        </a>
-
+                        <a class="button button-primary button-lg" href="/dokumentasi">Jelajahi dokumentasi <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+                        <a class="button button-outline button-lg" href="#kemampuan">Lihat kemampuan <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
                     </div>
-
+                    <div class="hero-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Daftar dan masuk akan tersedia setelah tautan aplikasi disiapkan.</div>
+                    <div class="hero-bottom"><span class="line-decor" aria-hidden="true"></span><span>Dirancang untuk alur kerja pengelolaan jaringan.</span></div>
                 </div>
 
-
-                <div
-                    class="network-preview"
-                aria-label="Ilustrasi pemantauan jaringan">
-
-                    <div class="preview-glow"></div>
-
-                    <div class="preview-window">
-
-                        <div class="preview-bar">
-
-                            <div
-                                class="preview-dots"
-                                aria-hidden="true">
-                                <i></i>
-                                <i></i>
-                                <i></i>
-                            </div>
-
+                <div class="showcase" aria-label="Ilustrasi antarmuka pemantauan NET.NMS, bukan data jaringan langsung">
+                    <div class="showcase-glow" aria-hidden="true"></div>
+                    <div class="showcase-window">
+                        <div class="showcase-sidebar" aria-hidden="true">
+                            <span class="mini-mark">N</span>
+                            <i class="bi bi-grid-1x2-fill active"></i>
+                            <i class="bi bi-diagram-3"></i>
+                            <i class="bi bi-hdd-network"></i>
+                            <i class="bi bi-activity"></i>
+                            <span class="sidebar-spacer"></span>
+                            <i class="bi bi-gear"></i>
                         </div>
-
-
-                        <div class="preview-body">
-
-                            <div class="metric-row">
-
-                                <article>
-                                    <span>OLT</span>
-                                    <strong>Aktif</strong>
-                                    <small>Perangkat utama</small>
-                                </article>
-
-                                <article>
-                                    <span>ONU</span>
-                                    <strong>Terpantau</strong>
-                                    <small>Status dan sinyal</small>
-                                </article>
-
-                                <article>
-                                    <span>Aktivitas</span>
-                                    <strong>Terbaru</strong>
-                                    <small>Perubahan jaringan</small>
-                                </article>
-
+                        <div class="showcase-main">
+                            <div class="showcase-bar">
+                                <span class="screen-crumb">Workspace <i class="bi bi-chevron-right"></i> Overview</span>
+                                <span class="screen-avatar" aria-hidden="true">N</span>
                             </div>
-
-
-                            <div class="topology-card">
-
-                                <div class="topology-head">
-
-                                    <div>
-                                        <span>Topologi</span>
-                                        <strong>Jalur perangkat</strong>
+                            <div class="showcase-title-row"><div><span class="screen-label">NETWORK OVERVIEW</span><h2>Pusat pemantauan</h2></div><span class="screen-demo">Tampilan ilustrasi</span></div>
+                            <div class="metric-grid">
+                                <div class="metric-card"><span><i class="bi bi-hdd-stack"></i> OLT</span><strong>Perangkat</strong><small>Kelola node utama</small></div>
+                                <div class="metric-card"><span><i class="bi bi-router"></i> ONU</span><strong>Status</strong><small>Pantau konektivitas</small></div>
+                                <div class="metric-card"><span><i class="bi bi-reception-4"></i> Optik</span><strong>Sinyal</strong><small>Tinjau kondisi jalur</small></div>
+                            </div>
+                            <div class="screen-detail-grid">
+                                <div class="topology-panel">
+                                    <div class="panel-heading"><strong>Topologi jaringan</strong><span>Simulasi</span></div>
+                                    <div class="network-graph" aria-hidden="true">
+                                        <svg viewBox="0 0 340 180" role="presentation" focusable="false">
+                                            <defs><linearGradient id="trace" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#70e3d2"/><stop offset="1" stop-color="#a399ff"/></linearGradient></defs>
+                                            <path d="M54 90 H116 Q128 90 128 78 V45 Q128 33 143 33 H223 M128 90 H223 M128 102 V136 Q128 148 143 148 H223" fill="none" stroke="url(#trace)" stroke-width="2.5" stroke-linecap="round" opacity=".82"/>
+                                            <circle cx="54" cy="90" r="22" fill="#162b38" stroke="#70e3d2" stroke-width="2"/>
+                                            <circle cx="54" cy="90" r="8" fill="#70e3d2"/>
+                                            <circle cx="238" cy="33" r="15" fill="#1b2a40" stroke="#a399ff" stroke-width="2"/>
+                                            <circle cx="238" cy="90" r="15" fill="#1b2a40" stroke="#a399ff" stroke-width="2"/>
+                                            <circle cx="238" cy="148" r="15" fill="#1b2a40" stroke="#a399ff" stroke-width="2"/>
+                                            <circle cx="238" cy="33" r="4" fill="#c1baff"/><circle cx="238" cy="90" r="4" fill="#c1baff"/><circle cx="238" cy="148" r="4" fill="#c1baff"/>
+                                            <text x="54" y="131" text-anchor="middle">OLT</text>
+                                            <text x="268" y="37">ONU 01</text><text x="268" y="94">ONU 02</text><text x="268" y="152">ONU 03</text>
+                                        </svg>
                                     </div>
-
-                                    <small>Ilustrasi jaringan</small>
-
+                                    <div class="topology-legend"><span><i class="legend-dot teal"></i> Perangkat utama</span><span><i class="legend-dot violet"></i> Perangkat akhir</span></div>
                                 </div>
-
-
-                                <div
-                                    class="network-map"
-                                    aria-hidden="true">
-
-                                    <span class="line line-one"></span>
-                                    <span class="line line-two"></span>
-                                    <span class="line line-three"></span>
-
-                                    <i class="node node-core"></i>
-                                    <i class="node node-a"></i>
-                                    <i class="node node-b"></i>
-                                    <i class="node node-c"></i>
-                                    <i class="node node-d"></i>
-
+                                <div class="activity-panel">
+                                    <div class="panel-heading"><strong>Alur kerja</strong><i class="bi bi-three-dots"></i></div>
+                                    <div class="activity-step"><span class="activity-icon teal"><i class="bi bi-search"></i></span><div><strong>Amati</strong><small>Status perangkat</small></div></div>
+                                    <div class="activity-step"><span class="activity-icon purple"><i class="bi bi-graph-up"></i></span><div><strong>Analisis</strong><small>Tren &amp; sinyal</small></div></div>
+                                    <div class="activity-step"><span class="activity-icon amber"><i class="bi bi-check2-circle"></i></span><div><strong>Tindak lanjut</strong><small>Sesuai kebutuhan</small></div></div>
                                 </div>
-
                             </div>
-
-
-                            <div class="event-row">
-
-                                <span
-                                    class="event-icon"
-                                    aria-hidden="true"></span>
-
-                                <div>
-                                    <strong>Aktivitas jaringan</strong>
-                                    <small>
-                                        Telusuri perubahan status perangkat
-                                    </small>
-                                </div>
-
-                            </div>
-
                         </div>
-
                     </div>
-
+                    <div class="showcase-floating"><span><i class="bi bi-stars"></i> Satu tampilan</span><strong>Lebih banyak konteks.</strong></div>
                 </div>
+            </div>
+            <div class="container hero-topics" aria-label="Cakupan pemantauan"><span>Fokus pemantauan</span><span>OLT / ONU</span><span>SNMP &amp; OID</span><span>Status perangkat</span><span>Sinyal optik</span><span>Integrasi</span></div>
+        </section>
 
-            </section>
-
-
-            <section
-                class="capabilities"
-                id="fitur"
-                aria-label="Fitur utama">
-
-                <article>
-
-                    <span class="capability-number">
-                        01
-                    </span>
-
-                    <div>
-
-                        <h2>Kenali kondisi jaringan</h2>
-
-                        <p>
-                            Lihat status OLT dan ONU, kondisi sinyal, serta aktivitas
-                            terbaru untuk membantu pemeriksaan harian.
-                        </p>
-
-                    </div>
-
-                </article>
-
-
-                <article>
-
-                    <span class="capability-number">
-                        02
-                    </span>
-
-                    <div>
-
-                        <h2>Kelola perangkat lebih rapi</h2>
-
-                        <p>
-                            Susun data OLT, ONU, ODC, ODP, dan OTB dalam satu aplikasi
-                            agar informasi jaringan lebih mudah ditemukan.
-                        </p>
-
-                    </div>
-
-                </article>
-
-
-                <article>
-
-                    <span class="capability-number">
-                        03
-                    </span>
-
-                    <div>
-
-                        <h2>Tindak lanjuti dari satu tempat</h2>
-
-                        <p>
-                            Periksa detail ONU dan jalankan tindakan seperti reboot
-                            langsung dari aplikasi pada perangkat yang mendukung.
-                        </p>
-
-                    </div>
-
-                </article>
-
-            </section>
-
-
-            <section class="transparency-section getting-started" id="mulai" aria-labelledby="getting-started-title">
-                <div>
-                    <p class="eyebrow"><span></span>Mulai menggunakan NET.NMS</p>
-                    <h2 id="getting-started-title">Dari perangkat ke pemantauan terpusat</h2>
-                    <a class="text-link" href="<?= htmlspecialchars(landing_nms_href('register'), ENT_QUOTES, 'UTF-8') ?>">Buat akun <span aria-hidden="true">&rarr;</span></a>
+        <section class="section capabilities-section" id="kemampuan" aria-labelledby="capabilities-heading">
+            <div class="container">
+                <div class="section-intro"><div><span class="eyebrow">DARI DATA KE PEMAHAMAN</span><h2 id="capabilities-heading">Bukan sekadar melihat status.<br><em>Memahami jaringan Anda.</em></h2></div><p>Informasi teknis lebih berguna saat disajikan dengan alur yang mudah diikuti—dari kondisi perangkat hingga keputusan operasional.</p></div>
+                <div class="feature-grid">
+                    <article class="feature-card"><div class="feature-symbol"><i class="bi bi-hdd-network" aria-hidden="true"></i></div><span class="feature-number">01 / VISIBILITY</span><h3>Pantau perangkat dari satu konteks</h3><p>Telusuri OLT, ONU, dan perangkat jaringan lainnya tanpa harus berpindah-pindah sumber informasi.</p><span class="feature-bottom">Inventaris &amp; status <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span></article>
+                    <article class="feature-card feature-card-highlight"><div class="feature-symbol"><i class="bi bi-activity" aria-hidden="true"></i></div><span class="feature-number">02 / INSIGHT</span><h3>Kenali perubahan lebih cepat</h3><p>Periksa informasi sinyal dan kondisi operasional untuk menentukan area yang perlu perhatian lebih lanjut.</p><span class="feature-bottom">Sinyal &amp; kondisi <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span></article>
+                    <article class="feature-card"><div class="feature-symbol"><i class="bi bi-diagram-3" aria-hidden="true"></i></div><span class="feature-number">03 / WORKFLOW</span><h3>Kelola dengan arah yang jelas</h3><p>Hubungkan data perangkat dengan tindakan yang relevan, sesuai metode yang didukung perangkat dan sistem.</p><span class="feature-bottom">Konteks &amp; tindak lanjut <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span></article>
                 </div>
-                <div class="transparency-copy">
-                    <ol class="getting-started-steps">
-                        <li><h3>Siapkan akun Anda</h3><p>Daftar dan masuk ke aplikasi untuk mulai mengelola jaringan.</p></li>
-                        <li><h3>Tambahkan perangkat</h3><p>Masukkan perangkat dan atur koneksi sesuai metode yang didukung.</p></li>
-                        <li><h3>Pantau kondisi jaringan</h3><p>Setelah data tersinkron, periksa status, sinyal, dan aktivitas perangkat melalui dashboard.</p></li>
-                    </ol>
-                    <a class="text-link" href="/dokumentasi">Baca panduan penggunaan <span aria-hidden="true">&rarr;</span></a>
+            </div>
+        </section>
+
+        <section class="section workflow-section" aria-labelledby="workflow-heading">
+            <div class="container workflow-grid">
+                <div class="workflow-content"><span class="eyebrow">CARA KERJANYA</span><h2 id="workflow-heading">Satu alur, dari <em>pantau</em> hingga tindak lanjut.</h2><p>Tampilan yang terstruktur membantu tim tetap fokus pada pekerjaan, bukan pada kerumitan antarperangkat.</p><a href="/tentang" class="text-link">Kenali NET.NMS <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></div>
+                <ol class="workflow-steps">
+                    <li><span>01</span><div><h3>Hubungkan &amp; kelola</h3><p>Susun informasi perangkat jaringan ke dalam sistem yang lebih teratur.</p></div><i class="bi bi-plug" aria-hidden="true"></i></li>
+                    <li><span>02</span><div><h3>Pantau &amp; telusuri</h3><p>Periksa status, sinyal, dan informasi teknis yang tersedia untuk perangkat.</p></div><i class="bi bi-binoculars" aria-hidden="true"></i></li>
+                    <li><span>03</span><div><h3>Tinjau &amp; tindak lanjuti</h3><p>Gunakan informasi tersebut untuk membantu penanganan di lapangan.</p></div><i class="bi bi-arrow-return-right" aria-hidden="true"></i></li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="section docs-section" id="panduan" aria-labelledby="docs-heading">
+            <div class="container">
+                <div class="section-intro"><div><span class="eyebrow">KNOWLEDGE BASE</span><h2 id="docs-heading">Dokumentasi yang ikut<br><em>tumbuh bersama aplikasi.</em></h2></div><p>Temukan panduan penggunaan, referensi OID, dan langkah integrasi. Ruang dokumentasi disiapkan agar panduan baru mudah ditambahkan.</p></div>
+                <div class="docs-grid">
+                    <a class="doc-preview doc-preview-featured" href="/dokumentasi#panduan-mulai"><span class="doc-type"><i class="bi bi-book-half"></i> PANDUAN APLIKASI</span><div class="doc-icon"><i class="bi bi-journal-text"></i></div><h3>Mulai menggunakan NET.NMS</h3><p>Kenali alur dasar dari penataan perangkat hingga pemantauan harian.</p><span class="doc-arrow">Baca panduan <i class="bi bi-arrow-up-right"></i></span></a>
+                    <a class="doc-preview" href="/dokumentasi#olt-hisfocus"><span class="doc-type"><i class="bi bi-braces"></i> REFERENSI TEKNIS</span><div class="doc-icon"><i class="bi bi-hdd-stack"></i></div><h3>Katalog OID &amp; SNMP</h3><p>Referensi per perangkat dengan fungsi, indeks, dan metode akses.</p><span class="doc-arrow">Lihat referensi <i class="bi bi-arrow-up-right"></i></span></a>
+                    <a class="doc-preview" href="/dokumentasi#waha-installation"><span class="doc-type"><i class="bi bi-link-45deg"></i> INTEGRASI</span><div class="doc-icon"><i class="bi bi-chat-dots"></i></div><h3>Integrasi WPPConnect</h3><p>Panduan instalasi layanan dan penghubungannya ke NET.NMS.</p><span class="doc-arrow">Buka panduan <i class="bi bi-arrow-up-right"></i></span></a>
                 </div>
-            </section>
+                <div class="docs-bottom"><span><i class="bi bi-plus-circle"></i> Punya panduan baru? Tambahkan melalui katalog dokumentasi berbasis PHP.</span><a class="text-link" href="/dokumentasi">Semua dokumentasi <i class="bi bi-arrow-right"></i></a></div>
+            </div>
+        </section>
 
-            <section
-                class="transparency-section"
-                aria-labelledby="transparency-title">
+        <section class="closing-section" aria-labelledby="closing-heading"><div class="container closing-content"><span class="eyebrow eyebrow-light">LANGKAH BERIKUTNYA</span><h2 id="closing-heading">Pemantauan yang lebih <em>terarah</em> dimulai dari informasi yang tepat.</h2><p>Jelajahi kemampuan NET.NMS sekarang. Akses pendaftaran dan masuk akan diaktifkan setelah tautan aplikasinya tersedia.</p><div class="closing-actions"><a class="button button-primary button-lg" href="/dokumentasi">Buka pusat dokumentasi <i class="bi bi-arrow-up-right"></i></a><button class="button button-soon button-lg" type="button" disabled title="Tautan pendaftaran belum tersedia">Daftar <span>Segera hadir</span></button><button class="button button-soon button-lg" type="button" disabled title="Tautan masuk belum tersedia">Masuk <span>Segera hadir</span></button></div></div></section>
+    </main>
 
-                <div>
-
-                    <p class="eyebrow">
-                        <span></span>
-                        Tentang proyek
-                    </p>
-
-                    <h2 id="transparency-title">
-                        Dikembangkan dari kebutuhan di lapangan
-                    </h2>
-
-                </div>
-
-
-                <div class="transparency-copy">
-
-                    <p>
-                        NET.NMS tumbuh dari kebutuhan pengelolaan jaringan sehari-hari.
-                        Pengembangannya dibantu kecerdasan buatan, dengan arahan manusia
-                        dan pengujian bertahap. Pengalaman serta masukan pengguna membantu
-                        menentukan perbaikan berikutnya.
-                    </p>
-
-                    <a class="text-link" href="/tentang">Baca tentang proyek <span aria-hidden="true">&rarr;</span></a>
-
-                </div>
-
-            </section>
-
-
-            <section
-                class="feedback-section"
-                id="masukan"
-                aria-labelledby="feedback-title">
-
-                <div class="feedback-intro">
-
-                    <p class="eyebrow">
-                        <span></span>
-                        Masukan pengguna
-                    </p>
-
-                    <h2 id="feedback-title">
-                        Bantu kami membuat NET.NMS lebih baik
-                    </h2>
-
-                    <p>
-                        Punya ide fitur atau menemukan kendala? Ceritakan melalui
-                        formulir ini. Masukan Anda akan diterima oleh pengelola
-                        dan tidak ditampilkan secara publik.
-                    </p>
-
-                </div>
-
-
-                <form
-                    class="feedback-form"
-                    method="post"
-                    action="/feedback"
-                    novalidate>
-
-                    <input
-                        type="hidden"
-                        name="csrf"
-                        value="<?= htmlspecialchars(
-                                    (string)$_SESSION['landing_feedback_csrf'],
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>">
-
-
-                    <label
-                        class="feedback-trap"
-                        aria-hidden="true">
-                        Website
-
-                        <input
-                            name="website"
-                            tabindex="-1"
-                            autocomplete="off">
-
-                    </label>
-
-
-                    <div class="feedback-row">
-
-                        <label data-tip="Harap isi bidang ini" data-tip-pos="bottom">
-
-                            <span>Nama</span>
-
-                            <input
-                                name="name"
-                                maxlength="100"
-                                autocomplete="name"
-                                required
-                                placeholder="Nama Anda">
-
-                        </label>
-
-
-                        <label data-tip="Email atau WhatsApp" data-tip-pos="bottom">
-
-                            <span>
-                                Kontak
-                                <small>opsional</small>
-                            </span>
-
-                            <input
-                                name="contact"
-                                maxlength="160"
-                                autocomplete="email"
-                                placeholder="Email atau WhatsApp">
-
-                        </label>
-
-                    </div>
-
-
-                    <label data-tip="Harap isi bidang ini" data-tip-pos="bottom">
-
-                        <span>Judul pesan</span>
-
-                        <input
-                            name="subject"
-                            minlength="3"
-                            maxlength="160"
-                            required
-                            placeholder="Ringkasan saran atau masalah">
-
-                    </label>
-
-
-                    <label data-tip="Harap isi bidang ini" data-tip-pos="bottom">
-
-                        <span>Isi pesan</span>
-
-                        <textarea
-                            name="message"
-                            minlength="10"
-                            maxlength="5000"
-                            rows="6"
-                            required
-                            placeholder="Jelaskan masalah atau saran Anda"></textarea>
-
-                    </label>
-
-
-                    <div class="feedback-submit">
-
-                        <button
-                            class="button button-primary button-large"
-                            type="submit">
-                            Kirim masukan
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </section>
-
-        </main>
-
-
-        <?php require __DIR__ . '/partials/footer.php'; ?>
-    </div>
-    <?php $noticeJsVersion = (string)(@filemtime(__DIR__ . '/asset/js/notice.js') ?: 1); ?>
-    <script src="/asset/js/notice.js?v=<?= rawurlencode($noticeJsVersion) ?>" defer></script>
-    <script src="/asset/js/feedback.js" defer></script>
+    <?php require __DIR__ . '/partials/footer.php'; ?>
+</div>
 </body>
-
 </html>
