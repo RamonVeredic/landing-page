@@ -8,14 +8,6 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-secret_dir=${LINMS_SECRETS_DIR:-/DATA/AppData/linms_landingpage/secrets}
-for secret in feedback_db_password feedback_ip_hash_key; do
-    if [ ! -f "$secret_dir/$secret" ]; then
-        echo "Berkas $secret_dir/$secret belum ada; siapkan secrets sebelum deploy." >&2
-        exit 1
-    fi
-done
-
 git pull --ff-only origin master
 revision=$(git rev-parse HEAD)
 
