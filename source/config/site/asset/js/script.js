@@ -1,18 +1,54 @@
 (() => {
   'use strict';
 
-  const form = document.querySelector('.oid-search');
-  const input = document.getElementById('oidSearchInput');
-  const status = document.getElementById('oidSearchStatus');
-  const groups = Array.from(document.querySelectorAll('.oid-reference-group'));
+  // Mobile navigation is available on all pages.
+  const toggle = document.querySelector('[data-nav-toggle]');
+  const mainNav = document.querySelector('[data-main-nav]');
+
+  const closeNav = () => {
+    if (!toggle || !mainNav) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Buka navigasi');
+    mainNav.classList.remove('is-open');
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = 'bi bi-list';
+  };
+
+  toggle?.addEventListener('click', () => {
+    if (!mainNav) return;
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Tutup navigasi' : 'Buka navigasi');
+    mainNav.classList.toggle('is-open', open);
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = open ? 'bi bi-x-lg' : 'bi bi-list';
+  });
+
+  mainNav?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeNav);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeNav();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!toggle || !mainNav || !(event.target instanceof Node)) return;
+    if (!toggle.contains(event.target) && !mainNav.contains(event.target)) closeNav();
+  });
+
+  // Documentation panel management; skipped outside /dokumentasi.
   const categoryView = document.querySelector('[data-documentation-categories]');
+  const categoryButtons = [...document.querySelectorAll('[data-documentation-open]')];
+  const groups = [...document.querySelectorAll('[data-documentation-panel]')];
   const detailToolbar = document.querySelector('[data-documentation-detail-toolbar]');
-  const oidToolbar = document.querySelector('[data-oid-toolbar]');
-  const categoryButtons = Array.from(document.querySelectorAll('[data-documentation-open]'));
   const backButton = document.querySelector('[data-documentation-back]');
+  const oidToolbar = document.querySelector('[data-oid-toolbar]');
+  const searchForm = document.querySelector('.oid-search');
+  const searchInput = document.getElementById('oidSearchInput');
+  const searchStatus = document.getElementById('oidSearchStatus');
 
-  if (!form || !input || !status || !categoryView || groups.length === 0) return;
-
+  if (!categoryView || groups.length === 0) return;
   let activePanel = '';
 
   const showCategories = () => {
@@ -20,109 +56,88 @@
     categoryView.hidden = false;
     if (detailToolbar) detailToolbar.hidden = true;
     if (oidToolbar) oidToolbar.hidden = true;
-    status.hidden = true;
+    if (searchStatus) {
+      searchStatus.hidden = true;
+      searchStatus.textContent = '';
+    }
+    if (searchInput) searchInput.value = '';
     groups.forEach((group) => { group.hidden = true; });
-    input.value = '';
-    status.textContent = '';
-    history.replaceState(null, '', `${location.pathname}${location.search}`);
+    history.replaceState(null, '', location.pathname + location.search);
   };
 
-  const openCategory = (id) => {
+  const openCategory = (id, shouldScroll = true) => {
     const selected = groups.find((group) => group.dataset.documentationPanel === id);
-    if (!selected) return;
+    if (!selected) return false;
     activePanel = id;
     categoryView.hidden = true;
     if (detailToolbar) detailToolbar.hidden = false;
-    if (oidToolbar) oidToolbar.hidden = id === 'waha-installation';
-    status.hidden = id === 'waha-installation';
+    const isOid = selected.dataset.docKind === 'oid';
+    if (oidToolbar) oidToolbar.hidden = !isOid;
+    if (searchStatus) {
+      searchStatus.hidden = !isOid;
+      searchStatus.textContent = '';
+    }
+    if (searchInput) searchInput.value = '';
+    selected.querySelectorAll('tbody tr').forEach((row) => { row.hidden = false; });
     groups.forEach((group) => { group.hidden = group !== selected; });
-    input.value = '';
-    status.textContent = '';
-    history.replaceState(null, '', `#${encodeURIComponent(id)}`);
-    selected.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', '#' + encodeURIComponent(id));
+    if (shouldScroll) selected.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
   };
 
-  const filterRows = () => {
-    const query = input.value.trim().toLocaleLowerCase('id-ID');
-    let visibleRows = 0;
-
-    groups.filter((group) => group.dataset.documentationPanel !== 'waha-installation').forEach((group) => {
-      let groupRows = 0;
-      group.querySelectorAll('tbody tr').forEach((row) => {
-        const match = query === '' || row.textContent.toLocaleLowerCase('id-ID').includes(query);
-        row.hidden = !match;
-        if (match) groupRows += 1;
-      });
-      group.hidden = activePanel !== '' ? group.dataset.documentationPanel !== activePanel || groupRows === 0 : groupRows === 0;
-      visibleRows += groupRows;
+  const filterOidRows = () => {
+    const panel = groups.find((group) => group.dataset.documentationPanel === activePanel);
+    if (!panel || panel.dataset.docKind !== 'oid' || !searchInput) return;
+    const query = searchInput.value.trim().toLocaleLowerCase('id-ID');
+    let found = 0;
+    panel.querySelectorAll('tbody tr').forEach((row) => {
+      const matches = query === '' || row.textContent.toLocaleLowerCase('id-ID').includes(query);
+      row.hidden = !matches;
+      if (matches) found += 1;
     });
-
-    status.textContent = query === ''
-      ? ''
-      : `${visibleRows} OID ditemukan untuk “${input.value.trim()}”.`;
+    if (searchStatus) searchStatus.textContent = query ? found + ' OID ditemukan untuk “' + searchInput.value.trim() + '”.' : '';
   };
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    filterRows();
-  });
-
-  input.addEventListener('input', () => {
-    if (input.value === '') filterRows();
-  });
 
   categoryButtons.forEach((button) => button.addEventListener('click', () => openCategory(button.dataset.documentationOpen || '')));
   backButton?.addEventListener('click', showCategories);
+  searchForm?.addEventListener('submit', (event) => { event.preventDefault(); filterOidRows(); });
+  searchInput?.addEventListener('input', filterOidRows);
 
-  const initialCategory = decodeURIComponent(location.hash.replace(/^#/, ''));
-  if (initialCategory && groups.some((group) => group.dataset.documentationPanel === initialCategory)) openCategory(initialCategory);
-  else showCategories();
+  const startingCategory = decodeURIComponent(location.hash.replace(/^#/, ''));
+  if (!startingCategory || !openCategory(startingCategory, false)) showCategories();
 
-  const copyText = async (value) => {
+  // Copy code samples in technical guides.
+  const copyText = async (text) => {
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(text);
       return true;
     }
-    const temporary = document.createElement('textarea');
-    temporary.value = value;
-    temporary.setAttribute('readonly', '');
-    temporary.style.position = 'fixed';
-    temporary.style.opacity = '0';
-    temporary.style.pointerEvents = 'none';
-    document.body.appendChild(temporary);
-    temporary.focus();
-    temporary.select();
-    temporary.setSelectionRange(0, temporary.value.length);
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
     const copied = document.execCommand('copy');
-    temporary.remove();
+    field.remove();
     return copied;
   };
 
-  const showCopyResult = (button, copied) => {
-    const label = button.querySelector('span');
-    if (label) label.textContent = copied ? 'Tersalin' : 'Pilih dan salin';
-    window.setTimeout(() => { if (label) label.textContent = 'Salin'; }, 1600);
-  };
-
   document.addEventListener('click', async (event) => {
+    if (!(event.target instanceof Element)) return;
     const button = event.target.closest('[data-copy-code], [data-copy-text]');
     if (!(button instanceof HTMLButtonElement)) return;
-    const code = button.hasAttribute('data-copy-code')
-      ? button.closest('.documentation-code-block')?.querySelector('pre code')
-      : null;
-    const value = code?.textContent || button.dataset.copyText || '';
-    if (value === '') return;
+    const codeBlock = button.closest('.documentation-code-block')?.querySelector('pre');
+    const text = button.hasAttribute('data-copy-code') ? (codeBlock?.textContent || '') : (button.dataset.copyText || '');
+    if (!text) return;
+    const label = button.querySelector('span');
     try {
-      showCopyResult(button, await copyText(value));
-    } catch (error) {
-      if (code) {
-        const range = document.createRange();
-        range.selectNodeContents(code);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
-      showCopyResult(button, false);
+      const copied = await copyText(text);
+      if (label) label.textContent = copied ? 'Tersalin' : 'Pilih dan salin';
+    } catch {
+      if (label) label.textContent = 'Pilih dan salin';
     }
+    window.setTimeout(() => { if (label) label.textContent = 'Salin'; }, 1800);
   });
 })();

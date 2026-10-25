@@ -42,6 +42,11 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:18085/ > /tmp/linms-home.html
           grep -q 'NET.NMS' /tmp/linms-home.html
           test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18085/config/database.php)" = '404'
+          curl --fail --silent --show-error http://127.0.0.1:18085/tentang | grep -q 'NET.NMS'
+          curl --fail --silent --show-error http://127.0.0.1:18085/dokumentasi | grep -q 'panduan-mulai'
+          curl --fail --silent --show-error http://127.0.0.1:18085/asset/css/styiles.css > /dev/null
+          test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18085/feedback)" = '404'
+          test "$(curl --silent -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:18085/feedback)" = '404'
       - uses: docker/build-push-action@v7
         with:
           context: .

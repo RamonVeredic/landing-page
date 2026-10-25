@@ -9,19 +9,8 @@ services:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
       TZ: ${TZ:-Asia/Jakarta}
-      LANDING_NMS_BASE_URL: ${LANDING_NMS_BASE_URL:-/NMS}
-      LANDING_SECURE_COOKIE: ${LANDING_SECURE_COOKIE:-1}
-      FEEDBACK_DB_HOST: ${FEEDBACK_DB_HOST:-host.docker.internal}
-      FEEDBACK_DB_PORT: ${FEEDBACK_DB_PORT:-3306}
-      FEEDBACK_DB_NAME: ${FEEDBACK_DB_NAME:-}
-      FEEDBACK_DB_USER: ${FEEDBACK_DB_USER:-}
     ports:
       - '${LANDING_BIND:-0.0.0.0}:${LANDING_PORT:-8085}:8080'
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    secrets:
-      - feedback_db_password
-      - feedback_ip_hash_key
     restart: unless-stopped
     mem_limit: 256m
     pids_limit: 128
@@ -31,9 +20,3 @@ services:
       timeout: 3s
       retries: 3
       start_period: 30s
-
-secrets:
-  feedback_db_password:
-    file: ${LINMS_SECRETS_DIR:-/DATA/AppData/linms_landingpage/secrets}/feedback_db_password
-  feedback_ip_hash_key:
-    file: ${LINMS_SECRETS_DIR:-/DATA/AppData/linms_landingpage/secrets}/feedback_ip_hash_key

@@ -10,28 +10,37 @@ $pageDescription = 'Referensi OID SNMP untuk perangkat yang didukung NET.NMS.';
 
 define('NMS_OID_REFERENCE', true);
 $catalogs = (array)(require __DIR__ . '/oid-reference.php');
+$guides = (array)(require __DIR__ . '/docs-guides.php');
 ?>
 <!doctype html>
 <html lang="id">
 <?php require __DIR__ . '/partials/head.php'; ?>
 
 <body>
+    <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
     <div class="landing-shell information-shell">
         <?php require __DIR__ . '/partials/navbar.php'; ?>
 
-        <main class="information-main documentation-main">
+        <main class="information-main documentation-main" id="main-content">
             <header class="documentation-header">
-                <p class="eyebrow"><span></span> Referensi SNMP</p>
-                <h1>Dokumentasi OID</h1>
-                <p>Referensi OID berdasarkan perangkat, dilengkapi kegunaan, pola indeks, dan metode akses.</p>
+                <span class="eyebrow">PUSAT DOKUMENTASI NET.NMS</span>
+                <h1>Pengetahuan teknis.<br><em>Dalam satu tempat.</em></h1>
+                <p>Mulai dari panduan penggunaan NET.NMS, referensi OID SNMP, hingga integrasi layanan terkait. Pilih kategori untuk membaca tanpa meninggalkan halaman.</p>
             </header>
 
             <section class="documentation-categories" data-documentation-categories aria-labelledby="documentation-category-title">
                 <div class="section-heading">
-                    <span class="section-kicker">Kategori</span>
-                    <h2 id="documentation-category-title">Pilih dokumentasi</h2>
+                    <span class="section-kicker">JELAJAHI MATERI</span>
+                    <h2 id="documentation-category-title">Pilih topik yang ingin dipelajari</h2>
                 </div>
                 <div class="documentation-category-grid">
+                    <?php foreach ($guides as $guideId => $guide): ?>
+                        <button class="documentation-category-card" type="button" data-doc-kind="guide" data-documentation-open="<?= htmlspecialchars((string)$guideId, ENT_QUOTES, 'UTF-8') ?>">
+                            <i class="bi <?= htmlspecialchars((string)($guide['icon'] ?? 'bi-book'), ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                            <span><strong><?= htmlspecialchars((string)$guide['title'], ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars((string)$guide['summary'], ENT_QUOTES, 'UTF-8') ?></small></span>
+                            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </button>
+                    <?php endforeach; ?>
                     <?php foreach ($catalogs as $catalogId => $catalog): ?>
                         <?php
                         $categoryTitle = match ((string)$catalogId) {
@@ -75,8 +84,33 @@ $catalogs = (array)(require __DIR__ . '/oid-reference.php');
             <p class="oid-search-status" id="oidSearchStatus" aria-live="polite"></p>
 
             <section class="oid-catalog" aria-label="Isi dokumentasi">
+                <?php foreach ($guides as $guideId => $guide): ?>
+                    <article class="oid-reference-group" id="<?= htmlspecialchars((string)$guideId, ENT_QUOTES, 'UTF-8') ?>" data-documentation-panel="<?= htmlspecialchars((string)$guideId, ENT_QUOTES, 'UTF-8') ?>" data-doc-kind="guide" hidden>
+                        <header>
+                            <span><?= htmlspecialchars((string)($guide['category'] ?? 'Panduan aplikasi'), ENT_QUOTES, 'UTF-8') ?></span>
+                            <h3><?= htmlspecialchars((string)$guide['title'], ENT_QUOTES, 'UTF-8') ?></h3>
+                            <p><?= htmlspecialchars((string)$guide['summary'], ENT_QUOTES, 'UTF-8') ?></p>
+                        </header>
+                        <div class="guide-chapters">
+                            <?php foreach ((array)($guide['sections'] ?? []) as $chapter): ?>
+                                <section class="guide-chapter">
+                                    <h4><?= htmlspecialchars((string)($chapter['title'] ?? ''), ENT_QUOTES, 'UTF-8') ?></h4>
+                                    <p><?= htmlspecialchars((string)($chapter['description'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
+                                    <?php if (!empty($chapter['bullets'])): ?>
+                                        <ul class="documentation-steps">
+                                            <?php foreach ((array)$chapter['bullets'] as $point): ?>
+                                                <li><?= htmlspecialchars((string)$point, ENT_QUOTES, 'UTF-8') ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </section>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="guide-aside"><i class="bi bi-info-circle" aria-hidden="true"></i> Panduan disusun sebagai acuan. Periksa kesesuaiannya dengan versi NET.NMS dan perangkat Anda sebelum melakukan perubahan di jaringan produksi.</p>
+                    </article>
+                <?php endforeach; ?>
                 <?php foreach ($catalogs as $catalogId => $catalog): ?>
-                    <article class="oid-reference-group" id="<?= htmlspecialchars($catalogId, ENT_QUOTES, 'UTF-8') ?>" data-documentation-panel="<?= htmlspecialchars((string)$catalogId, ENT_QUOTES, 'UTF-8') ?>" hidden>
+                    <article class="oid-reference-group" id="<?= htmlspecialchars($catalogId, ENT_QUOTES, 'UTF-8') ?>" data-documentation-panel="<?= htmlspecialchars((string)$catalogId, ENT_QUOTES, 'UTF-8') ?>" data-doc-kind="oid" hidden>
                         <header>
                             <span>Sumber OID</span>
                             <h3><?= htmlspecialchars((string)$catalog['name'], ENT_QUOTES, 'UTF-8') ?></h3>
@@ -124,7 +158,7 @@ $catalogs = (array)(require __DIR__ . '/oid-reference.php');
                     </article>
                 <?php endforeach; ?>
 
-                <article class="oid-reference-group waha-installation" id="waha-installation" data-documentation-panel="waha-installation" hidden>
+                <article class="oid-reference-group waha-installation" id="waha-installation" data-documentation-panel="waha-installation" data-doc-kind="integration" hidden>
                     <header>
                         <span>WhatsApp HTTP API</span>
                         <h3>Instalasi dan integrasi WPPConnect</h3>
@@ -295,7 +329,6 @@ docker compose logs --tail=100 wppconnect</code></pre>
 
         <?php require __DIR__ . '/partials/footer.php'; ?>
     </div>
-    <script src="/asset/js/script.js?v=<?= rawurlencode((string)(@filemtime(__DIR__ . '/asset/js/script.js') ?: 1)) ?>" defer></script>
 </body>
 
 </html>
