@@ -33,7 +33,7 @@ Untuk menambah dokumentasi, tambahkan entri dengan ID unik ke `source/config/sit
 
 ## Membangun image (GitHub Actions)
 
-Workflow `.github/workflows/build-images.yml` tetap menjalankan pengujian pada pull request dan **hanya memublikasikan** ke GHCR ketika Git tag cocok dengan `v*.*.*`, misalnya `v1.2.3`:
+Workflow `.github/workflows/build-images.yml` **hanya berjalan ketika Git tag baru cocok dengan `v*.*.*`**, misalnya `v1.2.3`. Push ke `master` dan aktivitas pull request **tidak memicu GitHub Actions**. Pada satu run tag tersebut, workflow memvalidasi Compose, menguji startup Nginx/PHP, kemudian memublikasikan image ke GHCR sebagai tag versi dan `latest`:
 
 ```sh
 git checkout master
