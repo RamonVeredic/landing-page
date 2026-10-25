@@ -1,0 +1,7 @@
+services:
+  nginx:
+    volumes:
+      - ./source:/workspace/landing-source:ro
+  php:
+    volumes:
+      - ./source:/workspace/landing-source:ro
