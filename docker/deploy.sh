@@ -8,6 +8,13 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
+for secret in feedback_db_password feedback_ip_hash_key; do
+    if [ ! -f "../landing-page-state/secrets/$secret" ]; then
+        echo "Berkas ../landing-page-state/secrets/$secret belum ada; siapkan state sebelum deploy." >&2
+        exit 1
+    fi
+done
+
 git pull --ff-only origin master
 revision=$(git rev-parse HEAD)
 

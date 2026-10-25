@@ -1,6 +1,6 @@
 # Landing page NET.NMS
 
-Satu repository Git berisi `source/` (halaman dan konfigurasi), `docker/` (Dockerfile dan skrip deploy), serta Compose. Data dan rahasia berada di folder saudara `../landing-page-state/`, di luar repository. `.env` lokal diabaikan Git; `.env.example` hanya berisi nama variabel dan contoh nilai, tanpa kata sandi.
+Satu repository Git berisi `source/` (halaman dan konfigurasi), `docker/` (Dockerfile dan skrip deploy), serta Compose. `../landing-page-state/` menyimpan dua rahasia formulir pada host, di luar repository dan image. Saat container dibuat, Compose memasang kedua berkas itu ke `/run/secrets/` di container PHP. Folder state tidak dibuat oleh `docker pull`; siapkan sekali pada host baru, lalu biarkan tetap ada saat image diperbarui. `.env` lokal diabaikan Git; `.env.example` hanya berisi nama variabel dan contoh nilai, tanpa kata sandi.
 
 ## Hubungan Git, image, dan container
 
@@ -30,7 +30,7 @@ Image hanya menyalin `source/config/nginx`, `source/config/php`, dan `source/con
 ## Persiapan awal
 
 1. Salin `.env.example` menjadi `.env` di akar repository. Isi `LANDING_NMS_BASE_URL` dengan URL NMS yang benar. `/NMS` hanya cocok jika reverse proxy memang merutekannya ke NMS.
-2. Buat `../landing-page-state/secrets/`. Isi `feedback_ip_hash_key` dengan kunci acak, misalnya `openssl rand -hex 32 > ../landing-page-state/secrets/feedback_ip_hash_key`.
+2. Buat `../landing-page-state/secrets/`, misalnya `mkdir -p ../landing-page-state/secrets`. Isi `feedback_ip_hash_key` dengan kunci acak, misalnya `openssl rand -hex 32 > ../landing-page-state/secrets/feedback_ip_hash_key`.
 3. Jika formulir masukan dipakai, buat akun database khusus dengan hak `SELECT` dan `INSERT` pada tabel `feedback_messages`, isi `FEEDBACK_DB_NAME` dan `FEEDBACK_DB_USER` di `.env`, lalu simpan kata sandi di `../landing-page-state/secrets/feedback_db_password`. Bila belum dikonfigurasi, buat berkas kata sandi kosong agar container bisa mulai; formulir akan menampilkan kegagalan secara jelas.
 4. Pada host Linux, berikan akses baca hanya ke user PHP: `chown 82:82 ../landing-page-state/secrets/*` dan `chmod 400 ../landing-page-state/secrets/*`. Jika paket GHCR privat, login ke `ghcr.io` sebelum deploy.
 
