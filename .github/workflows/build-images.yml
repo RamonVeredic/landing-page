@@ -27,6 +27,20 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Smoke test Nginx and PHP
+        run: |
+          docker build --file docker/Dockerfile --tag linms_landingpage:smoke .
+          docker run -d --name linms_smoke -p 127.0.0.1:18085:8080 -e LANDING_SECURE_COOKIE=0 linms_landingpage:smoke
+          trap 'docker logs linms_smoke || true; docker rm -f linms_smoke || true' EXIT
+          ready=0
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:18085/healthz >/dev/null; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" -eq 1
+          curl --fail --silent --show-error http://127.0.0.1:18085/ > /tmp/linms-home.html
+          grep -q 'NET.NMS' /tmp/linms-home.html
+          test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18085/config/database.php)" = '404'
       - uses: docker/build-push-action@v7
         with:
           context: .
