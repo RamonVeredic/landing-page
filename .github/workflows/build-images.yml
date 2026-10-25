@@ -1,4 +1,4 @@
-name: Build landing page images
+name: Build linms_landingpage image
 
 on:
   push:
@@ -9,19 +9,12 @@ permissions:
   packages: write
 
 concurrency:
-  group: landing-page-${{ github.ref }}
+  group: linms_landingpage-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - service: nginx
-            dockerfile: docker/Dockerfile
-          - service: php
-            dockerfile: docker/Dockerfile.php
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-qemu-action@v4
@@ -34,11 +27,11 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: .
-          file: ${{ matrix.dockerfile }}
+          file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
             VCS_REF=${{ github.sha }}
-          tags: ghcr.io/ramonveredic/landing-page-${{ matrix.service }}:latest
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          tags: ghcr.io/ramonveredic/linms_landingpage:latest
+          cache-from: type=gha,scope=linms_landingpage
+          cache-to: type=gha,mode=max,scope=linms_landingpage
